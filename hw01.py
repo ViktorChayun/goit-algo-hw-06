@@ -27,34 +27,24 @@ class Record:
         self.phones = [] # список з обєктами класу Phone
         
     def add_phone(self, phone):
-        try:
-            p = Phone(phone)
-            # перевірка чи такий номер вже існує, щоб не додавати дубль
-            if not self.find_phone(phone):
-                self.phones.append(p)
-        except ValueError as err:
-            print(err)
+        p = Phone(phone)
+        # перевірка чи такий номер вже існує, щоб не додавати дубль
+        if not self.find_phone(phone):
+            self.phones.append(p)
     
     def remove_phone(self, phone):
         value = self.find_phone(phone)
         if value:
             self.phones.remove(value)
-        else:
-            print(f"Can't delete. Phone '{phone}' is not existing.")
     
     def edit_phone(self, old_phone:str, new_phone:str):
         # якщо номеру телефону який хочемо змінити не існує або новий номер некоректно заданий - викликаємо помилку
         if not self.find_phone(old_phone):
-            print(f"Can't edit. Old phone '{old_phone}' is not found.")
-        
-        # перевіряємо на коректність новий телефон, якщо не коректний викличе помилку
-        try:
-            Phone(new_phone) #спроба створити новий номер телефону - перевірка на валідність. 
-            #якщо все гаразд, то видаляємо старий і додаємо новий номер телефону
-            self.remove_phone(old_phone)
+            raise ValueError(f"Can't edit. Old phone '{old_phone}' is not found.")        
+        # якщо телефон дійсно змінився
+        if old_phone !=  new_phone:
             self.add_phone(new_phone)
-        except ValueError as err: 
-            print("Can't edit.", err)
+            self.remove_phone(old_phone)
     
     def find_phone(self, phone:str) -> Phone:
         for p in self.phones:
@@ -72,14 +62,11 @@ class AddressBook(UserDict):
             self.data[record.name.value] = record
     
     def find(self, name)->Record:
-        return self.data.get(name) if name in self.data else None
-        #return self.data[name] if name in self.data else None    
+        return self.data.get(name)
 
     def delete(self, name):
         if self.find(name):
             del self.data[name]
-        else:
-            print(f"Can't delete phone '{name}'. It is not existing.")
             
     def __str__(self):
         res = "\n".join(str(rec) for rec in self.data.values())
@@ -94,9 +81,22 @@ def main():
     john_record.add_phone("1234567890")
     john_record.add_phone("5555555555")
     john_record.add_phone("5555555555") # same phone --> issue
-    john_record.add_phone("fdsdfds")    # incorrect value
-    john_record.add_phone(None)         # incorrect value
-    john_record.add_phone("5555")       # incorrect value
+    
+    try:
+        john_record.add_phone("fdsdfds")    # incorrect value
+    except Exception as err:
+        print(err)
+        
+    try:
+        john_record.add_phone(None)         # incorrect value
+    except Exception as err:
+        print(err)
+    
+    try:
+        john_record.add_phone("5555")       # incorrect value
+    except Exception as err:
+        print(err)
+    
 
     # Додавання запису John до адресної книги
     book.add_record(john_record)
@@ -127,9 +127,22 @@ def main():
     print(f"{john.name}: {found_phone}")  # Виведення: John: 5555555555
 
     jane_record.remove_phone("111111111111") # remove not exiting phone
-    jane_record.edit_phone("2222222222", "33333333333") # new value incorrect
-    jane_record.edit_phone("2222222222222", "3333333333") # edit not existing phone
+    try:
+        jane_record.edit_phone("2222222222", "33333333333") # new value incorrect
+    except Exception as err:
+        print(err)
+    
+    try:
+        jane_record.edit_phone("2222222222222", "3333333333") # edit not existing phone
+    except Exception as err:
+        print(err)
+    
     jane_record.edit_phone("2222222222", "3333333333")
+    jane_record.edit_phone("3333333333","3333333333")
+    try:
+        jane_record.edit_phone("3333333333",None)
+    except Exception as err:
+        print(err)
     print(jane_record)
 
     # Видалення запису Jane
